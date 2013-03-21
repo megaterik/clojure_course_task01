@@ -2,6 +2,11 @@
   (:require [pl.danieljanus.tagsoup :refer :all])
   (:gen-class))
 
+(defn extract-tag [data tag]
+  (when (coll? data)
+    (if (= tag (first data))
+      [data] 
+    (mapcat #(if (coll? %) (extract-tag % tag)) data))))
 
 (defn get-links []
 " 1) Find all elements containing {:class \"r\"}.
@@ -20,10 +25,12 @@ The link from the example above is 'https://github.com/clojure/clojure'.
 
 Example: ['https://github.com/clojure/clojure', 'http://clojure.com/', . . .]
 "
-  (let [data (parse "clojure_google.html")]
-    nil))
+  (let [data (parse "clojure_google.html")
+        h3data (extract-tag data :h3)
+        links (extract-tag h3data :a)
+        hrefs (map #((second %) :href) links)]
+    hrefs))
 
 (defn -main []
   (println (str "Found " (count (get-links)) " links!")))
-
 
